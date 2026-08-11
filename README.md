@@ -56,6 +56,11 @@ cargo build --release
 - `docs/01-插件格式规范.md`（NS 语言与 `.axext` / `.axex` 格式规范）：**[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**（`LICENSE-CC-BY-4.0.txt`）
 - 其余内容（其他文档、`tools/axbuild` 打包工具、`samples` 示例）：**MIT**（`LICENSE`）
 
+## 作者与维护
+
+- 团队：[AllyXplore](https://github.com/AllyXplore)
+- 维护者：Ax丶现
+
 ---
 
 ## 发布到 GitHub

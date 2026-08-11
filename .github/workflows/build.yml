@@ -1,0 +1,29 @@
+name: build
+
+on:
+  push:
+    paths:
+      - 'tools/axbuild/**'
+  pull_request:
+    paths:
+      - 'tools/axbuild/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/axbuild
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: 编译（release）
+        run: cargo build --release --locked
+      - name: 冒烟测试（生成模板 + 打包 + 读回）
+        run: |
+          ./target/release/axbuild new /tmp/smoke --id com.example.smoke --name Smoke --author CI
+          ./target/release/axbuild pack /tmp/smoke /tmp/smoke.axext
+          ./target/release/axbuild info /tmp/smoke.axext
+          ./target/release/axbuild pack /tmp/smoke /tmp/smoke.axex --encrypt
+          ./target/release/axbuild info /tmp/smoke.axex

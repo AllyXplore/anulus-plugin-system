@@ -2,7 +2,7 @@
 name = "axbuild"
 version = "1.0.0"
 description = "AxAIHub 插件打包工具 - 命令行打包 .axext / .axex 插件"
-authors = ["AxAIHub"]
+authors = ["AllyXplore"]
 edition = "2021"
 
 [dependencies]

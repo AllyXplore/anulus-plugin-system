@@ -1,6 +1,6 @@
 Creative Commons Attribution 4.0 International (CC BY 4.0)
 
-Copyright (c) 2026 AxAIHub contributors
+Copyright (c) 2026 AllyXplore
 
 本文件许可的对象：`docs/01-插件格式规范.md`（AxAIHub 插件格式规范：NS 语言 + .axext / .axex 格式定义）。
 
