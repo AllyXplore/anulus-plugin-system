@@ -1,0 +1,19 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 AxAIHub contributors
+
+本文件许可的对象：`docs/01-插件格式规范.md`（AxAIHub 插件格式规范：NS 语言 + .axext / .axex 格式定义）。
+
+您有权在遵守以下条款的前提下自由使用、修改、再分发本文件（含商业使用）：
+- **署名**：以任何合理方式标明原作者与许可协议，提供指向本许可的链接，并说明是否做了修改。
+
+完整的法律文本见官方地址：
+
+  https://creativecommons.org/licenses/by/4.0/legalcode
+
+许可协议要点（非法律文本，仅供参考）：
+
+  BY — 允许共享（复制、分发、展示、表演本作品）与演绎（基于本作品创作衍生作品），
+       但必须给出适当的署名；允许商业使用；不得使用技术措施限制他人行使本许可授予的权利。
+
+本仓库其余内容（其他文档、tools/axbuild 打包工具、samples 示例）采用 MIT 许可，见 `LICENSE`。

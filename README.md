@@ -46,13 +46,14 @@ cargo build --release
 
 - **两种分发格式**：`.axext` 明文 ZIP（开源分享）；`.axex` AES-256-GCM 加密 ZIP + 可选 Ed25519 作者签名（商业闭源，防源码泄露）
 - **严格权限模型**：插件必须在 `.ns` 声明权限，用户运行时授权或管理页手动开启，未声明一律不可用
-- **独立窗口运行**：插件跑在独立 WebView（类似微信小程序），敏感命令（读文件 / 取密钥 / 终端等）在 Rust 层对插件窗口关闭
+- **隔离运行**：插件跑在无同源的 iframe / 宿主页面中，通信只走 postMessage 桥；敏感命令（读文件 / 取密钥 / 终端等）在 Rust 层校验「仅主窗口可用」，插件一律够不到
 - **AI 可反向调用**：声明 `ai.callable` 的插件，函数可被宿主 AI 作为工具调用
 - **钱包保护**：`ai.chat` 由用户指定方案 + 可配置配额（分/日/月 + token 预算），API 密钥永不进入插件
 
 ## 许可证
 
-MIT（见 [LICENSE](LICENSE)）。
+- `docs/01-插件格式规范.md`（NS 语言与 `.axext` / `.axex` 格式规范）：**[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**（`LICENSE-CC-BY-4.0.txt`）
+- 其余内容（其他文档、`tools/axbuild` 打包工具、`samples` 示例）：**MIT**（`LICENSE`）
 
 ---
 
