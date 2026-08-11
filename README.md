@@ -58,8 +58,8 @@ cargo build --release
 
 ## 作者与维护
 
-- 团队：[AllyXplore](https://github.com/AllyXplore)
-- 维护者：Ax丶现
+- 独立开发者个人项目，全部代码与文档由维护者一人完成
+- 维护者：Ax丶现（个人项目，AllyXplore 为对外品牌名，不构成团队）
 
 ---
 
