@@ -15,6 +15,9 @@
  *   - 请求:  {source:'axplugin', id, action, args} → 响应按 id 匹配
  *   - AI 调用: 宿主发 {type:'ai_call', function, args} → 插件回 ack → 心跳(2s) → result/error
  *   - 事件:  宿主发 {type:'event', event, payload}
+ *
+ * 注意：AX.aiFunction 依赖宿主 ai_call 投递链路，宿主端当前待接通（见 docs/04-API参考.md §4.2），
+ *       修复前 ai_call 会超时；其余能力（AX.call / AX.on）不受影响。
  * ========================================================================== */
 (function (global) {
   'use strict';

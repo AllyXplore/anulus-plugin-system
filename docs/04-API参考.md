@@ -129,6 +129,8 @@ window.addEventListener('message', function(e) {
 
 ### 4.2 宿主请求插件函数 (AI 调用)
 
+> **状态：宿主端待接通。** 插件侧实现（含参考 SDK 的 `AX.aiFunction`）按本协议编写即可；但宿主 AI 到插件的投递链路（`AxPlugin.html?silent=1` 隐藏模式）当前存在缺陷，调用会超时。修复后本协议即生效，本节保留为准确协议定义。
+
 声明了 `ai.callable: true` 的插件，宿主 AI 会按声明向插件发起函数调用：
 
 ```javascript
@@ -253,6 +255,8 @@ office {
 ---
 
 ## 7. AI 调用插件
+
+> **状态：宿主端待接通**（同 §4.2）：插件侧声明与 SDK 就绪，宿主投递链路待修复。
 
 声明了 `ai.callable: true` 的插件可以被 AI 通过工具调用系统调用。
 
