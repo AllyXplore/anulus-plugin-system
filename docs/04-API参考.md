@@ -376,15 +376,45 @@ permissions {
   <button onclick="doCalc()">计算</button>
   <div id="result"></div>
   <script>
-    // 安全表达式求值: 仅允许数字 + - * / ( ) 与小数点, 不执行任意代码
-    // (不要用 eval —— 用户输入会被当作脚本执行, 放大注入风险)
+    // 安全表达式求值: 纯算术解析器 (只支持数字 + - * / ( ) 与小数点)
+    // 不执行任意代码 —— 不要用 eval / new Function, 用户输入会被当作脚本执行
     function calc(expr) {
       var s = String(expr || '').replace(/\s+/g, '');
       if (!/^[0-9+\-*/().]+$/.test(s) || s === '') return 'Error';
-      try {
-        // 输入已按字符白名单校验, 仅算术表达式; 如需更复杂运算请接入 mathjs 等库
-        return new Function('return (' + s + ')')();
-      } catch (e) { return 'Error'; }
+      var pos = 0;
+      function peek() { return s[pos]; }
+      function next() { return s[pos++]; }
+      // 语法: expr = term (('+'|'-') term)* ; term = factor (('*'|'/') factor)* ; factor = number | '(' expr ')'
+      function parseExpr() {
+        var v = parseTerm();
+        while (peek() === '+' || peek() === '-') {
+          var op = next();
+          var r = parseTerm();
+          v = op === '+' ? v + r : v - r;
+        }
+        return v;
+      }
+      function parseTerm() {
+        var v = parseFactor();
+        while (peek() === '*' || peek() === '/') {
+          var op = next();
+          var r = parseFactor();
+          if (op === '/' && r === 0) throw new Error('div0');
+          v = op === '*' ? v * r : v / r;
+        }
+        return v;
+      }
+      function parseFactor() {
+        if (peek() === '(') { next(); var v = parseExpr(); if (next() !== ')') throw new Error('paren'); return v; }
+        var start = pos, dots = 0;
+        while (/[0-9.]/.test(peek() || '')) {
+          if (peek() === '.') { dots++; if (dots > 1) throw new Error('num'); }
+          next();
+        }
+        if (start === pos) throw new Error('num');
+        return parseFloat(s.slice(start, pos));
+      }
+      try { return parseExpr(); } catch (e) { return 'Error'; }
     }
     function doCalc() {
       document.getElementById('result').textContent =
