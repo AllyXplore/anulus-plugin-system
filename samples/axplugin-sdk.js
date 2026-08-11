@@ -18,6 +18,12 @@
  *
  * 注意：AX.aiFunction 的宿主投递链路已修复（AxPlugin.html 静默模式转发），随 APP 新版本生效；
  *       其余能力（AX.call / AX.on）在当前版本即可用。
+ *
+ * 设备能力（需先 permission.request 获取系统权限，未授权时动作返回 need_permission）：
+ *   AX.call('camera.capture', {})         拍照 → 结果经事件 'camera_result' 回传 {success, mime, data(图片base64)|error}
+ *   AX.call('mic.record', {durationMs:10}) 录音(1-30秒) → 结果经事件 'mic_result' 回传 {success, mime, data(aac base64)|error}
+ *   AX.call('geo.get', {})                 定位 → 同步返回 {lat, lng, accuracy, provider}，无定位返回 null
+ *   示例：AX.on('camera_result', fn) 监听拍照结果（事件名与 04-API参考.md 一致）
  * ========================================================================== */
 (function (global) {
   'use strict';

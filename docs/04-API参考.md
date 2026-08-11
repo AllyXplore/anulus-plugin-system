@@ -190,22 +190,48 @@ window.addEventListener('message', function(e) {
 | `api.catalog` | 查看 APP 的 API 方案目录（脱敏：名称/模型/能力，绝不返回密钥） | 无 |
 | `speech.recognize` / `speech.stop` | 系统语音识别（结果经 `speech_result` 事件异步回传 `{text, error}`） | speech |
 | `file.pickFolder` | 系统文件夹选择器（SAF，阻塞轮询，返回 `{uri, name}`） | file |
+| `camera.capture` | 拍照（调系统相机，结果经 `camera_result` 事件异步回传 `{success, mime, data(图片base64) \| error}`） | camera（系统权限） |
+| `mic.record` | 录音（`{durationMs}` 秒，1-30 默认 10，结果经 `mic_result` 事件异步回传 `{success, mime, data(aac base64) \| error}`） | microphone（系统权限） |
+| `geo.get` | 获取最近定位（同步返回 `{lat, lng, accuracy, provider}`；无定位返回 `null`） | location（系统权限） |
 | `user.profile` | 读取宿主用户头像/昵称（返回 `{granted, name, avatar}`，未授权时浮层弹授权框） | profile |
 | `permission.request` | 申请：能力权限弹宿主确认框；系统权限走 APP 通道 | 见上 |
 | `permission.check` | 查询：能力授权状态 / APP 系统权限状态 | 见上 |
 | `event.subscribe` / `event.unsubscribe` | 订阅 / 取消事件 | 无 |
 | `lifecycle` 事件 | 安装/启用/禁用/卸载时自动派发（无需订阅） | 无 |
 | `permission_result` 事件 | 系统权限申请结果异步回传（`{permType, granted, requestCode}`） | 无 |
+| `camera_result` 事件 | 拍照结果异步回传（`{success, mime, data \| error}`，需先授权系统相机权限） | 无 |
+| `mic_result` 事件 | 录音结果异步回传（`{success, mime, data \| error}`，需先授权系统麦克风权限） | 无 |
 
 ### 规划中能力（已在规范声明，宿主桥未实现，调用返回"未接通"）
 
 | action / 事件 | 说明 | 所需权限(第1层) |
 |---------------|------|----------|
-| `camera.capture` | 拍照 / 扫码（依赖 APP 相机权限） | camera |
-| `mic.record` | 录音（依赖 APP 麦克风权限） | microphone |
-| `geo.get` | 获取位置（依赖 APP 位置权限） | location |
+| 其余事件（app.focus / network.online / storage.change / user.idle / ...） | 事件订阅 | 无 |
 
-> 规划中能力的系统权限通道已就绪（`permission.check` / `permission.request` 支持），只差对应动作的宿主桥。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
+> 相机/麦克风/定位**能力动作**（`camera.capture` / `mic.record` / `geo.get`）已接通：使用前需先 `permission.request` 获取对应**系统权限**（弹系统授权窗），未授权时动作返回 `{granted:false, status:'need_permission', perm:'camera'|'microphone'|'location'}`。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
+
+### 设备能力调用示例（相机 / 录音 / 定位）
+
+```javascript
+// 1) 先申请系统权限 (弹系统授权窗, 结果经 permission_result 事件回传)
+await AX.call('permission.request', { permission: 'camera' });
+
+// 2) 拍照: 结果经 camera_result 事件异步回传 {success, mime, data(图片base64)|error}
+AX.on('camera_result', function(res) {
+  if (res.success) { /* res.data 为 JPEG base64, 可直接 <img src="data:image/jpeg;base64,..."> */ }
+});
+await AX.call('camera.capture', {});   // 未授权时返回 {granted:false, status:'need_permission'}
+
+// 3) 录音 10 秒: 结果经 mic_result 事件异步回传 {success, mime, data(aac base64)|error}
+AX.on('mic_result', function(res) {
+  if (res.success) { /* res.data 为 AAC base64 */ }
+});
+await AX.call('mic.record', { durationMs: 10 });
+
+// 4) 定位: 同步返回 {lat, lng, accuracy, provider}; 无定位返回 null
+const geo = await AX.call('geo.get', {});
+if (geo) { console.log('经度', geo.lng, '纬度', geo.lat); }
+```
 
 ### 完整调用示例
 
