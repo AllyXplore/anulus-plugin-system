@@ -16,8 +16,8 @@
  *   - AI 调用: 宿主发 {type:'ai_call', function, args} → 插件回 ack → 心跳(2s) → result/error
  *   - 事件:  宿主发 {type:'event', event, payload}
  *
- * 注意：AX.aiFunction 依赖宿主 ai_call 投递链路，宿主端当前待接通（见 docs/04-API参考.md §4.2），
- *       修复前 ai_call 会超时；其余能力（AX.call / AX.on）不受影响。
+ * 注意：AX.aiFunction 的宿主投递链路已修复（AxPlugin.html 静默模式转发），随 APP 新版本生效；
+ *       其余能力（AX.call / AX.on）在当前版本即可用。
  * ========================================================================== */
 (function (global) {
   'use strict';
