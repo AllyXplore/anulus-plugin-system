@@ -1,0 +1,22 @@
+# 你好插件 (hello-plugin)
+
+AxAIHub 插件最小示例：读取宿主信息 + 监听生命周期事件。
+
+## 文件
+
+- `plugin.ns` — NexusScript 元数据
+- `index.html` — 插件界面
+
+## 打包
+
+```bash
+# 需要 axbuild CLI, 见 tools/axbuild/
+axbuild pack . hello.axext
+```
+
+## 说明
+
+插件通过 `window.parent.postMessage` 与宿主通信（详见 `docs/04-API参考.md`）：
+
+- `app.info`：读取宿主名称与版本（无需权限）
+- `lifecycle` 事件：安装 / 启用 / 禁用 / 卸载时宿主自动派发（无需订阅）

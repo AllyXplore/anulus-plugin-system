@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>你好插件</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 24px; background: #f5f6f8; color: #222; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>你好，AxAIHub</h2>
+    <p id="info">正在读取宿主信息...</p>
+    <p id="lifecycle" style="color:#888;font-size:13px;"></p>
+  </div>
+  <script>
+    var seq = 0, pending = {};
+    function callHost(action, args) {
+      return new Promise(function(resolve, reject) {
+        var id = 'req-' + (++seq);
+        pending[id] = { resolve: resolve, reject: reject };
+        window.parent.postMessage({ source: 'axplugin', id: id, action: action, args: args || {} }, '*');
+        setTimeout(function() { if (pending[id]) { delete pending[id]; reject(new Error('超时')); } }, 5000);
+      });
+    }
+    window.addEventListener('message', function(e) {
+      if (e.data.source !== 'axhost') return;
+      var h = pending[e.data.id];
+      if (h) { delete pending[e.data.id]; e.data.error ? h.reject(e.data.error) : h.resolve(e.data.result); }
+      if (e.data.action === 'lifecycle') {
+        document.getElementById('lifecycle').textContent = '生命周期事件: ' + e.data.lifecycle;
+      }
+    });
+    callHost('app.info').then(function(info) {
+      document.getElementById('info').textContent = '宿主: ' + info.name + ' v' + info.version;
+    }).catch(function(err) {
+      document.getElementById('info').textContent = '读取失败: ' + err;
+    });
+  </script>
+</body>
+</html>

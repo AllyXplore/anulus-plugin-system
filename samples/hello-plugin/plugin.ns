@@ -1,0 +1,8 @@
+# 你好插件
+id          "com.example.hello"
+name        "你好插件"
+version     "1.0.0"
+author      "你的名字"
+description "AxAIHub 插件最小示例"
+type        local
+entry       "index.html"
