@@ -376,8 +376,15 @@ permissions {
   <button onclick="doCalc()">计算</button>
   <div id="result"></div>
   <script>
+    // 安全表达式求值: 仅允许数字 + - * / ( ) 与小数点, 不执行任意代码
+    // (不要用 eval —— 用户输入会被当作脚本执行, 放大注入风险)
     function calc(expr) {
-      try { return eval(expr); } catch(e) { return 'Error'; }
+      var s = String(expr || '').replace(/\s+/g, '');
+      if (!/^[0-9+\-*/().]+$/.test(s) || s === '') return 'Error';
+      try {
+        // 输入已按字符白名单校验, 仅算术表达式; 如需更复杂运算请接入 mathjs 等库
+        return new Function('return (' + s + ')')();
+      } catch (e) { return 'Error'; }
     }
     function doCalc() {
       document.getElementById('result').textContent =
