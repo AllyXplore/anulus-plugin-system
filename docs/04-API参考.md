@@ -106,6 +106,8 @@ permissions {
 
 ## 4. 通信协议 (postMessage)
 
+> 不想手写协议？可直接使用参考 SDK：`samples/axplugin-sdk.js`（`AX.call` / `AX.aiFunction` / `AX.on`，零依赖，与本文协议严格一致）。
+
 ### 4.1 插件请求宿主能力
 
 ```javascript
@@ -163,7 +165,7 @@ window.addEventListener('message', function(e) {
 });
 ```
 
-> 心跳协议：宿主等待 500ms 内收到 ack，否则判定无响应；处理期间每 3 秒需发送 heartbeat，否则判定卡死；总超时 30 秒（可配置）。
+> 心跳协议：宿主等待 ack（约 5 秒）判定插件是否响应；处理期间每 3 秒需收到 heartbeat，否则判定卡死；总超时 30 秒（可配置）。
 
 ---
 
@@ -192,6 +194,16 @@ window.addEventListener('message', function(e) {
 | `event.subscribe` / `event.unsubscribe` | 订阅 / 取消事件 | 无 |
 | `lifecycle` 事件 | 安装/启用/禁用/卸载时自动派发（无需订阅） | 无 |
 | `permission_result` 事件 | 系统权限申请结果异步回传（`{permType, granted, requestCode}`） | 无 |
+
+### 规划中能力（已在规范声明，宿主桥未实现，调用返回"未接通"）
+
+| action / 事件 | 说明 | 所需权限(第1层) |
+|---------------|------|----------|
+| `camera.capture` | 拍照 / 扫码（依赖 APP 相机权限） | camera |
+| `mic.record` | 录音（依赖 APP 麦克风权限） | microphone |
+| `geo.get` | 获取位置（依赖 APP 位置权限） | location |
+
+> 规划中能力的系统权限通道已就绪（`permission.check` / `permission.request` 支持），只差对应动作的宿主桥。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
 
 ### 完整调用示例
 

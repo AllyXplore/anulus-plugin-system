@@ -16,7 +16,8 @@ AxAIHub 的插件格式、打包工具与开发文档的开源仓库。
 │   ├── axbuild/              # 跨平台打包 CLI（Rust）：keypair / new / pack / info
 │   └── README.md             # 工具总览
 └── samples/
-    └── hello-plugin/         # 极简示例插件
+    ├── axplugin-sdk.js        # 插件参考 SDK（AX.call / AX.aiFunction / AX.on，零依赖）
+    └── hello-plugin/          # 极简示例插件（可直接打包）
 ```
 
 ## 快速开始

@@ -28,9 +28,10 @@
     window.addEventListener('message', function(e) {
       if (e.data.source !== 'axhost') return;
       var h = pending[e.data.id];
-      if (h) { delete pending[e.data.id]; e.data.error ? h.reject(e.data.error) : h.resolve(e.data.result); }
-      if (e.data.action === 'lifecycle') {
-        document.getElementById('lifecycle').textContent = '生命周期事件: ' + e.data.lifecycle;
+      if (h) { delete pending[e.data.id]; e.data.error ? h.reject(e.data.error) : h.resolve(e.data.result); return; }
+      // 生命周期事件: {type:'event', event:'lifecycle', payload:{type:'install'|'enable'|'disable'|'uninstall'}}
+      if (e.data.type === 'event' && e.data.event === 'lifecycle') {
+        document.getElementById('lifecycle').textContent = '生命周期事件: ' + e.data.payload.type;
       }
     });
     callHost('app.info').then(function(info) {
