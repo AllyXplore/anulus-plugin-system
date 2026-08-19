@@ -63,5 +63,6 @@ Import the resulting `.axext` / `.axex` into AxAIHub (Plugins -> Import) and it 
 
 ## Author & Maintenance
 
-- An independent developer project; all code and docs are written and maintained by one person
-- Maintainer: Ax丶现 (AllyXplore is the outward brand name, not a team)
+## Author & Maintenance
+- Maintained by the AllyXplore team
+- Lead developer: Ax丶现
