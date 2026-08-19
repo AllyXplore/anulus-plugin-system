@@ -13,11 +13,11 @@
  *
  * 协议要点（与宿主严格一致）：
  *   - 请求:  {source:'axplugin', id, action, args} → 响应按 id 匹配
- *   - AI 调用: 宿主发 {type:'ai_call', function, args} → 插件回 ack → 心跳(2s) → result/error
+ *   - AI 调用: 宿主发 {type:'ai_call', function, args} → 插件回 ack → 心跳(3s) → result/error
  *   - 事件:  宿主发 {type:'event', event, payload}
  *
- * 注意：AX.aiFunction 的宿主投递链路已修复（AxPlugin.html 静默模式转发），随 APP 新版本生效；
- *       其余能力（AX.call / AX.on）在当前版本即可用。
+ * 注意：AX.aiFunction 的宿主投递链路已接通（AxPlugin.html 静默模式转发）；
+ *       其余能力（AX.call / AX.on）同样可用。
  *
  * 设备能力（需先 permission.request 获取系统权限，未授权时动作返回 need_permission）：
  *   AX.call('camera.capture', {})         拍照 → 结果经事件 'camera_result' 回传 {success, mime, data(图片base64)|error}
@@ -57,7 +57,7 @@
   }
 
   function emit(event, payload) {
-    (listeners[event] || []).forEach(function (fn) { try { fn(payload); } catch (e) {} });
+    (listeners[event] || []).forEach(function (fn) { try { fn(payload); } catch (e) { console.warn('[axplugin-sdk] 事件回调出错:', e); } });
   }
 
   // 宿主消息分发
@@ -104,7 +104,7 @@
     }
     var heartbeat = setInterval(function () {
       window.parent.postMessage({ source: 'axplugin', id: callId, type: 'heartbeat' }, '*');
-    }, 2000);
+    }, 3000); // 心跳间隔 3 秒，与 docs/04-API参考.md 一致
     var sendResult = function (result) {
       clearInterval(heartbeat);
       window.parent.postMessage({ source: 'axplugin', id: callId, type: 'result', result: result }, '*');

@@ -129,7 +129,7 @@ window.addEventListener('message', function(e) {
 
 ### 4.2 宿主请求插件函数 (AI 调用)
 
-> **状态：已接通。** 宿主经隐藏的静默模式加载 AxPlugin.html 与插件通信（插件侧实现见参考 SDK 的 `AX.aiFunction`）；宿主投递链路已修复，随 APP 新版本生效。
+> **状态：已接通。** 宿主经隐藏的静默模式加载 AxPlugin.html 与插件通信（插件侧实现见参考 SDK 的 `AX.aiFunction`）。
 
 声明了 `ai.callable: true` 的插件，宿主 AI 会按声明向插件发起函数调用：
 
@@ -202,13 +202,15 @@ window.addEventListener('message', function(e) {
 | `camera_result` 事件 | 拍照结果异步回传（`{success, mime, data \| error}`，需先授权系统相机权限） | 无 |
 | `mic_result` 事件 | 录音结果异步回传（`{success, mime, data \| error}`，需先授权系统麦克风权限） | 无 |
 
-### 规划中能力（已在规范声明，宿主桥未实现，调用返回"未接通"）
+### 事件订阅
 
-| action / 事件 | 说明 | 所需权限(第1层) |
-|---------------|------|----------|
-| 其余事件（app.focus / network.online / storage.change / user.idle / ...） | 事件订阅 | 无 |
+| 事件 | 说明 |
+|------|------|
+| `lifecycle` | 安装/启用/禁用/卸载时自动派发（无需订阅） |
+| `permission_result` | 系统权限申请结果异步回传（`{permType, granted, requestCode}`） |
+| `camera_result` / `mic_result` / `speech_result` | 拍照 / 录音 / 语音识别结果异步回传 |
 
-> 相机/麦克风/定位**能力动作**（`camera.capture` / `mic.record` / `geo.get`）已接通：使用前需先 `permission.request` 获取对应**系统权限**（弹系统授权窗），未授权时动作返回 `{granted:false, status:'need_permission', perm:'camera'|'microphone'|'location'}`。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
+> 事件经 `event.subscribe` 订阅（`lifecycle` 无需订阅）。相机/麦克风/定位**能力动作**（`camera.capture` / `mic.record` / `geo.get`）已接通：使用前需先 `permission.request` 获取对应**系统权限**（弹系统授权窗），未授权时动作返回 `{granted:false, status:'need_permission', perm:'camera'|'microphone'|'location'}`。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
 
 ### 设备能力调用示例（相机 / 录音 / 定位）
 
@@ -282,24 +284,32 @@ office {
 
 ## 7. AI 调用插件
 
-> **状态：已接通**（同 §4.2）：插件侧声明与 SDK 就绪，宿主投递链路已修复，随 APP 新版本生效。
+> **状态：已接通**（同 §4.2）：插件侧声明与 SDK 就绪，宿主可调用插件声明的 AI 函数。
 
 声明了 `ai.callable: true` 的插件可以被 AI 通过工具调用系统调用。
 
 ### 7.1 AI 工具调用格式
 
 ```
-[TOOL:plugin]插件id|函数名|JSON参数[/TOOL]
+[TOOL:plugin]插件id|函数编号|JSON参数[/TOOL]
 
-# 示例
-[TOOL:plugin]my-calculator|calculate|{"expression":"1+2*3"}[/TOOL]
+# 说明
+- 每个插件声明的 AI 可调用函数由 **APP 统一分配全局唯一编号**（`P1` / `P2` / `P3` …，按插件 id 字典序 + 函数声明顺序分配）。
+- 开发者**无需自定义编号、也无需保证函数名全局唯一**（系统只要求单插件内函数名不重复）；AI 收到的"可用插件函数"清单里是「编号 + 说明文本」。
+- 这样从根上避免跨插件同名函数导致的调用歧义，AI 只需按编号调用。
+
+# 示例（编号由 APP 分配，此处假设 calculate 分配为 P1）
+[TOOL:plugin]my-calculator|P1|{"expression":"1+2*3"}[/TOOL]
+
+# 兼容
+历史消息 / 旧版本中的函数名写法（`[TOOL:plugin]my-calculator|calculate|...`）仍会被 APP 解析，新调用请优先使用编号。
 ```
 
 ### 7.2 函数声明格式
 
 ```json
 {
-  "name": "calculate",          // 函数名
+  "name": "calculate",          // 函数名(仅内部标识, 调用统一用系统分配的编号)
   "description": "执行计算",    // 描述(给 AI 看)
   "params": [                   // 参数列表
     { "name": "expression", "type": "string" }

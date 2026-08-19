@@ -245,6 +245,16 @@ fn unescape_ns(s: &str) -> String {
 
 /// 提取 .ns 顶层标量字段, 返回 key -> value 映射
 /// 仅收集顶层 (根对象直接子级) 的标量值; 嵌套对象/数组被跳过
+/// 去除字符串首尾引号（用于键名宽容处理）
+fn strip_quotes(s: &str) -> String {
+    let s = s.trim();
+    if s.starts_with('"') && s.ends_with('"') && s.len() >= 2 {
+        s[1..s.len()-1].to_string()
+    } else {
+        s.to_string()
+    }
+}
+
 fn ns_root_scalars(content: &str) -> HashMap<String, String> {
     let toks = tokenize_ns(content);
     let mut map = HashMap::new();
@@ -257,7 +267,7 @@ fn ns_root_scalars(content: &str) -> HashMap<String, String> {
         match &toks[i] {
             Tok::Close => break,
             Tok::Word(k) => {
-                let key = k.clone();
+                let key = strip_quotes(k);
                 i += 1;
                 if i >= toks.len() {
                     break;
@@ -448,6 +458,11 @@ fn cmd_pack_axex(src_dir: &str, output_path: &str, master_key: &str, private_key
         Ok(m) => m,
         Err(e) => { eprintln!("错误: {}", e); std::process::exit(1); }
     };
+    // 校验 plugin_id 字符集: 允许字母数字下划线横线和中点(反向域名风格)
+    if !plugin_id.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.') {
+        eprintln!("错误: 插件 ID 包含非法字符, 仅允许字母数字下划线横线和中点: {}", plugin_id);
+        std::process::exit(1);
+    }
     if plugin_type != "remote" {
         if let Some(entry_file) = entry.as_ref() {
             let entry_path = dir.join(entry_file);
@@ -680,6 +695,42 @@ fn cmd_info(path: &str, master_key: &str) {
     }
 }
 
+
+/// 提取 .ns 内容中 permissions 块内的顶层子键列表（用于 axbuild info 展示）
+fn extract_permissions_keys(content: &str) -> Vec<String> {
+    let mut keys = Vec::new();
+    if let Some(pos) = content.find("permissions") {
+        let rest = &content[pos + 11..];
+        let mut depth = 0u32;
+        let mut in_block = false;
+        let mut buf = String::new();
+        for c in rest.chars() {
+            match c {
+                '{' => {
+                    if !in_block { in_block = true; depth = 1; }
+                    else { depth += 1; }
+                }
+                '}' => {
+                    if in_block {
+                        depth -= 1;
+                        if depth == 0 { break; }
+                    }
+                }
+                _ if in_block && c.is_whitespace() => {
+                    if !buf.is_empty() {
+                        if !buf.starts_with('{') && !buf.starts_with('[') {
+                            keys.push(buf.clone());
+                        }
+                        buf.clear();
+                    }
+                }
+                _ if in_block => { buf.push(c); }
+                _ => {}
+            }
+        }
+    }
+    keys
+}
 fn info_axext(path: &str) {
     let file = match fs::File::open(path) {
         Ok(f) => f,
@@ -704,6 +755,14 @@ fn info_axext(path: &str) {
                 let mut content = String::new();
                 if mf.read_to_string(&mut content).is_ok() {
                     println!("\n{} 内容:", name);
+                    // 打印权限信息
+                    let perm_keys = extract_permissions_keys(&content);
+                    if !perm_keys.is_empty() {
+                        println!("  permissions:");
+                        for pk in &perm_keys {
+                            println!("    - {}", pk);
+                        }
+                    }
                     // 简易打印顶层字段
                     for (k, v) in ns_root_scalars(&content) {
                         println!("  {}: {}", k, v);
