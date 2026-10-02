@@ -1,10 +1,10 @@
-# AxAIHub Plugin System
+# Anulus Plugin System
 
 > **English** | [简体中文](README.zh-CN.md)
 
-The open-source plugin format, packaging toolchain, and developer documentation for **AxAIHub** — a privacy-first, local-first AI workspace on Android.
+The open-source plugin format, packaging toolchain, and developer documentation for **Anulus** — a privacy-first, local-first AI workspace on Android.
 
-Plugins are AxAIHub's extension mechanism: HTML plugins run in a standalone window (mini-program style) or an iframe, and talk to the host through a postMessage bridge with access to storage / network / clipboard / AI chat / speech / notifications / user profile / camera / mic / location, etc. Permissions follow a strict **declare-then-authorize** model.
+Plugins are Anulus's extension mechanism: HTML plugins run in a standalone window (mini-program style) or an iframe, and talk to the host through a postMessage bridge with access to storage / network / clipboard / AI chat / speech / notifications / user profile / camera / mic / location, etc. Permissions follow a strict **declare-then-authorize** model.
 
 ## Repository Structure
 
@@ -39,7 +39,7 @@ cargo build --release
 ./target/release/axbuild pack ./my-plugin my-plugin.axext
 ```
 
-Import the resulting `.axext` / `.axex` into AxAIHub (Plugins -> Import) and it runs.
+Import the resulting `.axext` / `.axex` into Anulus (Plugins -> Import) and it runs.
 
 ## Docs at a Glance
 
@@ -51,6 +51,7 @@ Import the resulting `.axext` / `.axex` into AxAIHub (Plugins -> Import) and it 
 
 - **Two distribution formats**: `.axext` plain ZIP (open sharing); `.axex` AES-256-GCM encrypted ZIP with optional Ed25519 author signature (commercial/closed-source, prevents source leaking)
 - **Strict permission model**: a plugin must declare permissions in its `.ns` manifest; the user grants them at runtime or in the manage panel. Undeclared = unusable
+- **Install-time security scan**: importing a plugin automatically runs structural validation, unknown-permission rejection, and heuristic malware checks; verdicts are displayed with severity (red warnings) and high-risk packages are blocked from installation. Manifest fields have hard limits (`name` ≤ 40 chars / `author` ≤ 30 chars / `description` capped at 2000 chars as a backstop — the install dialog shows long descriptions in an internally scrollable area; see `docs/01-插件格式规范.md` §2.4)
 - **Standalone window + injected bridge**: plugins run in their own window by default (mini-program style, usable in parallel with the host app); the bridge is injected by the host and all communication goes through postMessage. Sensitive commands (file reads / keys / terminal, etc.) are gated to the main window at the Rust layer — plugins can never reach them
 - **AI can call plugins**: plugins declaring `ai.callable` expose functions the host AI can invoke as tools (`AX.aiFunction`, protocol in `docs/04-API参考.md` §4.2)
 - **Wallet protection**: `ai.chat` uses user-selected plans + configurable quotas (per min/day/month + token budget); API keys never enter the plugin

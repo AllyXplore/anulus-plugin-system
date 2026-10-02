@@ -24,7 +24,7 @@ We aim to acknowledge reports within 7 days and provide a fix or mitigation plan
 
 ## Scope notes (what this repo is / isn't)
 
-- This repository ships the **plugin format, packaging CLI, and docs**. The AxAIHub app backend (Rust/JNI) lives in a separate private repository.
+- This repository ships the **plugin format, packaging CLI, and docs**. The Anulus app backend (Rust/JNI) lives in a separate private repository.
 - `.axex` encryption (AES-256-GCM) and the import-time environment self-check (emulator / root / debugger detection) are **defensive measures, not a hard security boundary**. They slow down casual tampering; they are not hardware-level protection and can be bypassed by determined attackers. Do not rely on them to protect secrets.
 - Plugins declare permissions in `.ns` and the user authorizes them. A malicious plugin can still abuse whatever permissions the user grants — review plugins before installing, especially closed-source `.axex` from untrusted authors.
 - API keys for AI plans never enter plugins; `ai.chat` uses the user-selected plan and quota.
@@ -57,7 +57,7 @@ We aim to acknowledge reports within 7 days and provide a fix or mitigation plan
 
 ## 范围说明
 
-- 本仓库仅包含**插件格式、打包工具与文档**。AxAIHub 应用后端（Rust/JNI）在独立私有仓库。
+- 本仓库仅包含**插件格式、打包工具与文档**。Anulus 应用后端（Rust/JNI）在独立私有仓库。
 - `.axex` 加密与导入时的环境自检（模拟器 / Root / 调试检测）是**防御性措施，非硬性安全边界**，可被有经验的攻击者绕过，请勿用于保护机密。
 - 插件在 `.ns` 声明权限、由用户授权；恶意插件仍可能滥用用户授予的权限，安装前请审阅，尤其来源不可信的闭源 `.axex`。
 - AI 方案的密钥永不进入插件；`ai.chat` 使用用户指定方案与配额。

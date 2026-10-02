@@ -1,4 +1,4 @@
-# AxAIHub 插件 API 参考
+# Anulus 插件 API 参考
 
 > 插件与宿主之间的完整通信协议、可用能力清单与扩展参考（AI 反向调用 / WASM / 办公页入口）。
 > 格式与权限以 `01-插件格式规范.md` 为准，本文是面向插件开发者的能力与协议速查。
@@ -75,9 +75,10 @@ license {
 | `notify` | 发送系统通知 | - |
 | `ai` | AI 调用权限(可被 AI 反向调用) | `callable`: bool, `functions`: 函数数组 |
 | `speech` | 系统语音识别 | - |
-| `file` | 系统文件夹选择器 | - |
+| `file` | 插件数据目录文件操作（读写/建目录/复制/移动/重命名/删除/搜索），以及系统文件/文件夹选择器 | - |
 | `profile` | 读取宿主用户头像/昵称 (`user.profile`) | - |
-| `office` | 办公页入口(在办公页显示按钮) | `enabled`, `title`, `desc`, `icon` |
+| `ai_api` | 对外提供 AI 接口（接收对话内容并转发给插件服务器） | - |
+| ~~`office`~~ | **已移除**（2026-09-26）：办公页入口功能整体下线，声明无效 | - |
 
 ```ns
 # 权限声明示例 (.ns 写法)
@@ -106,7 +107,7 @@ permissions {
 
 ## 4. 通信协议 (postMessage)
 
-> 不想手写协议？可直接使用参考 SDK：`samples/axplugin-sdk.js`（`AX.call` / `AX.aiFunction` / `AX.on`，零依赖，与本文协议严格一致）。
+> 不想手写协议？可直接使用参考 SDK：`samples/axplugin-sdk.js`（`AX.call` / `AX.aiFunction` / `AX.on` / `AX.aiApi.*` / `AX.onAiApiRequest`，零依赖，与本文协议严格一致）。
 
 ### 4.1 插件请求宿主能力
 
@@ -176,6 +177,7 @@ window.addEventListener('message', function(e) {
 | action | 说明 | 所需权限(第1层) |
 |--------|------|----------|
 | `app.info` | 获取应用信息 | 无 |
+| `env.get` | 获取宿主环境信息，当前含 `language`（主应用界面语言，如 zh-CN / en-US）。插件应据此自动匹配界面语言，无需询问用户；SDK 直接用 `AX.env.getLanguage()` | 无（免权限公开信息） |
 | `app.openUrl` | 在系统浏览器打开链接（仅 http/https） | 无 |
 | `app.share` | 系统分享面板分享图片 | media |
 | `storage.read` / `storage.write` | 读写插件私有数据文件 | storage |
@@ -187,6 +189,15 @@ window.addEventListener('message', function(e) {
 | `media.save` | 保存图片到系统相册（`{dataUrl, mediaType?}`） | media |
 | `notify.show` | 发送系统通知（`{title, body}`，需 APP 已获通知权限） | notify |
 | `ai.chat` | 调用宿主 AI 对话（`{messages, profileName?}`，支持多模态传图；方案由用户指定，插件无法绕过） | ai |
+| `aiapi.register` | 注册/更新本插件对外提供的 AI 接口（`{profileKey, name, model, description?}`；同 profileKey 覆盖更新） | ai_api |
+| `aiapi.setVisible` | 控制本插件接口是否显示给用户（`{profileKey, visible}`，随时可切） | ai_api |
+| `aiapi.remove` | 注销本插件注册的接口（`{profileKey}`） | ai_api |
+| `file.mkdir` / `file.copy` / `file.move` / `file.rename` | 建目录 / 复制 / 移动 / 重命名（均限定在插件数据目录内） | file |
+| `file.delete` | 删除文件或目录（不可撤销，宿主弹窗向用户确认一次） | file |
+| `file.search` / `file.info` | 按名称递归搜索（`{dir?, query?, limit?}`）/ 查询大小与时间（`{path}`） | file |
+| `ble.scan` / `ble.connect` / `ble.send` / `ble.notify` | 蓝牙扫描 / 连接 / 发送 / 订阅通知（可连接任意蓝牙设备，敏感） | bluetooth |
+| `ble.pair` / `ble.disconnect` | 系统配对 / 断开 | bluetooth |
+| `ui.confirm` / `ui.alert` / `ui.toast` | 调用宿主同款弹窗（宿主渲染，永远在插件内容之上，不可被遮挡或仿冒） | 无 |
 | `api.catalog` | 查看 APP 的 API 方案目录（脱敏：名称/模型/能力，绝不返回密钥） | 无 |
 | `speech.recognize` / `speech.stop` | 系统语音识别（结果经 `speech_result` 事件异步回传 `{text, error}`） | speech |
 | `file.pickFolder` | 系统文件夹选择器（SAF，阻塞轮询，返回 `{uri, name}`） | file |
@@ -211,6 +222,34 @@ window.addEventListener('message', function(e) {
 | `camera_result` / `mic_result` / `speech_result` | 拍照 / 录音 / 语音识别结果异步回传 |
 
 > 事件经 `event.subscribe` 订阅（`lifecycle` 无需订阅）。相机/麦克风/定位**能力动作**（`camera.capture` / `mic.record` / `geo.get`）已接通：使用前需先 `permission.request` 获取对应**系统权限**（弹系统授权窗），未授权时动作返回 `{granted:false, status:'need_permission', perm:'camera'|'microphone'|'location'}`。电池优化豁免、无障碍为 APP 级专属，插件声明无效。
+
+### 对外 AI 接口（插件作为算力提供方）
+
+用户不必部署服务或手输 API 密钥：下载算力提供方的官方插件即可获得 AI 接口。插件在 `.ns` 中声明 `ai_api` 权限并注册接口，用户在主应用模型选择器里选中后，对话请求回发给插件，由插件自行连接服务器取回数据。宿主不保存插件的端点与密钥。
+
+展示规则（硬性约定）：插件提供的接口在模型选择器中以**灰色字标注来源插件名**，与用户自配方案明确区分；插件可随时用 `aiapi.setVisible` 控制自己的接口是否显示。
+
+```javascript
+// 1) 插件启动时注册接口（同 profileKey 重复调用即更新；需 .ns 声明 ai_api 权限）
+await AX.aiApi.register('main', '算力方模型', 'model-x / 快速', '一句话说明');
+//    用户看到的名字是 name；模型选择器中会灰字显示 "· 来自插件 <你的插件名>"
+
+// 2) 随时控制显示/隐藏（例如账户额度用尽时先隐藏）
+await AX.aiApi.setVisible('main', false);
+await AX.aiApi.setVisible('main', true);
+
+// 3) 接收对话请求: handler 收到 {messages, model}，返回文本（或 Promise<文本>）
+AX.onAiApiRequest(async function (payload) {
+  // payload.messages 为宿主组装好的消息数组 [{role, content}, ...]
+  const reply = await fetchYourServer(payload.messages); // 你自己发网络请求
+  return reply;                                          // 返回完整回复文本
+});
+
+// 4) 注销接口
+await AX.aiApi.remove('main');
+```
+
+协议细节（SDK 已封装，手写时参考）：宿主发 `{source:'axhost', id, type:'ai_api_request', payload:{messages, model}}`；插件先回 `{source:'axplugin', id, type:'ack'}`，处理期间每 3 秒回 `{type:'heartbeat'}`（宿主按心跳判活：空闲 15 秒 / 总超时 180 秒），完成后回 `{source:'axplugin', id, type:'ai_api_response', ok:true, content}` 或 `{ok:false, error}`。插件卸载时其注册的接口会被宿主一并清除。
 
 ### 设备能力调用示例（相机 / 录音 / 定位）
 

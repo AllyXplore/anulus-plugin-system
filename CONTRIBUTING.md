@@ -2,7 +2,7 @@
 
 > English primary · 简体中文见下方分隔线
 
-Thanks for your interest in the AxAIHub plugin system.
+Thanks for your interest in the Anulus plugin system.
 
 ## What can be contributed
 
@@ -35,7 +35,7 @@ cargo build --release
 
 > 中文版 · English above
 
-感谢关注 AxAIHub 插件体系。
+感谢关注 Anulus 插件体系。
 
 ## 可以贡献什么
 

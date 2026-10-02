@@ -1,4 +1,4 @@
-// AxAIHub 插件打包工具 (CLI)
+// Anulus 插件打包工具 (CLI)
 // 支持打包 .axext (开源 ZIP) 和 .axex (AES-256-GCM 加密 + 可选 Ed25519 作者签名)
 //
 // 本工具的输出格式与手机端 AxExt 打包工具 (App 内) 字节级对齐, 互相可导入:
@@ -6,7 +6,7 @@
 //   .axex v1: AXEX[version=1][plugin_id_len][plugin_id][nonce(12)][ciphertext]   (无签名段)
 //
 // 元数据统一使用 .ns (NexusScript) 格式, 回退 manifest.json。
-// 默认加密密钥与 App 内置密钥一致: AxAIHub-Default-Dev-Key!
+// 默认加密密钥与 App 内置密钥一致: Anulus-Default-Dev-Key!
 // 签名使用开发者自己的 Ed25519 私钥, 没有"默认签名密钥" —— 作者身份由开发者自备密钥保证。
 //
 // 使用:
@@ -33,9 +33,9 @@ use rand::RngCore;
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use ed25519_compact::*;
 
-/// AxAIHub 插件打包工具
+/// Anulus 插件打包工具
 #[derive(Parser)]
-#[command(name = "axbuild", version = "1.0.0", about = "AxAIHub 插件打包工具 (与 App 格式对齐)")]
+#[command(name = "axbuild", version = "1.0.0", about = "Anulus 插件打包工具 (与 App 格式对齐)")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -99,7 +99,7 @@ enum Commands {
 
 /// 默认加密主密钥, 与 App 内置密钥一致
 /// 注意: 这只是 AES 加密层的默认密钥。作者签名使用的是开发者自己的 Ed25519 私钥, 没有默认值。
-const DEFAULT_MASTER_KEY: &str = "AxAIHub-Default-Dev-Key!";
+const DEFAULT_MASTER_KEY: &str = "Anulus-Default-Dev-Key!";
 
 /// 打包时排除的文件/目录名 (不区分大小写), 与 App builder.rs 保持一致
 const EXCLUDED_NAMES: &[&str] = &[
